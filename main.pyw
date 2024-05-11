@@ -21,6 +21,10 @@ class App:
         self.file_menu.add_command(label="Fechar", command=self.close_app)
         self.menu_bar.add_cascade(label="Arquivo", menu=self.file_menu)
 
+        self.config_menu = Menu(self.menu_bar, tearoff=0)
+        self.config_menu.add_command(label="Configurar Canny...", command=self.config_canny)
+        self.menu_bar.add_cascade(label="Configurações", menu=self.config_menu)
+
         self.root.config(menu=self.menu_bar)
 
         # Exibição da imagem
@@ -56,8 +60,10 @@ class App:
                 ratio = min(max_size / image_width, max_size / image_height)
                 image_width = int(image_width * ratio)
                 image_height = int(image_height * ratio)
-                self.image = self.image.resize((image_width, image_height))
-            self.photo = ImageTk.PhotoImage(self.image)
+                resized_image = self.image.resize((image_width, image_height))
+                self.photo = ImageTk.PhotoImage(resized_image)
+            else:
+                self.photo = ImageTk.PhotoImage(self.image)
             self.canvas.create_image(0, 0, anchor=NW, image=self.photo)
         else:
             messagebox.showerror("Erro", "Nenhuma imagem carregada.")
@@ -79,6 +85,9 @@ class App:
                 messagebox.showinfo("Salvo", "Imagem salva com sucesso.")
         else:
             messagebox.showerror("Erro", "Nenhuma imagem carregada para salvar.")
+    
+    def config_canny(self):
+        pass
 
 if __name__ == "__main__":
     root = Tk()
