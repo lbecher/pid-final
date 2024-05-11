@@ -1,4 +1,4 @@
-from tkinter import Canvas, filedialog, Menu, messagebox, NW, Tk
+from tkinter import Button, Canvas, filedialog, Label, Menu, messagebox, NW, Scale, Tk, Toplevel
 from PIL import Image, ImageTk
 import cv2
 import numpy
@@ -11,6 +11,9 @@ class App:
         self.imagem_original = None
         self.imagem_processada = None
         self.imagem_final = None
+
+        self.canny_min = 100
+        self.canny_max = 200
 
         self.raiz = raiz
         self.raiz.title("Ligação de Pontos de Borda")
@@ -73,16 +76,44 @@ class App:
         self.raiz.quit()
     
     def configurar_canny(self):
-        
-        if self.imagem_original:
-            self.aplicar_canny()
+        # Criar uma nova janela para configurar os parâmetros do Canny
+            configurar_canny_janela = Toplevel(self.raiz)
+            configurar_canny_janela.title("Configuração do Canny")
+
+            # Label e controle deslizante para limiar mínimo
+            lbl_limiar_min = Label(configurar_canny_janela, text="Limiar mínimo:")
+            lbl_limiar_min.pack(pady=(10, 5))
+
+            scale_limiar_min = Scale(configurar_canny_janela, from_=0, to=255, orient="horizontal")
+            scale_limiar_min.set(self.canny_min)  # Valor padrão
+
+            scale_limiar_min.pack(pady=5)
+
+            # Label e controle deslizante para limiar máximo
+            lbl_limiar_max = Label(configurar_canny_janela, text="Limiar máximo:")
+            lbl_limiar_max.pack(pady=(10, 5))
+
+            scale_limiar_max = Scale(configurar_canny_janela, from_=0, to=255, orient="horizontal")
+            scale_limiar_max.set(self.canny_max)  # Valor padrão
+
+            scale_limiar_max.pack(pady=5)
+            
+            def configurar_e_aplicar_canny():
+                self.canny_min = scale_limiar_min.get()
+                self.canny_max = scale_limiar_max.get()
+                if self.imagem_original:
+                    self.aplicar_canny()
+                configurar_canny_janela.destroy()
+
+            btn_aplicar = Button(configurar_canny_janela, text="Aplicar", command=configurar_e_aplicar_canny)
+            btn_aplicar.pack(pady=10)
     
     def aplicar_canny(self):
         if self.imagem_original:
             # Converte para tons de cinza
             imagem_monocromatica = cv2.cvtColor(numpy.array(self.imagem_original), cv2.COLOR_RGB2GRAY)
             # Aplica algoritmo de Canny
-            imagem_monocromatica = cv2.Canny(imagem_monocromatica, 100, 200)
+            imagem_monocromatica = cv2.Canny(imagem_monocromatica, self.canny_min, self.canny_max)
 
             self.imagem_processada = Image.fromarray(imagem_monocromatica)
 
@@ -92,6 +123,12 @@ class App:
                 self.mostrar_imagem()
         else:
             messagebox.showerror("Erro", "Nenhuma imagem carregada para modificar.")
+    
+    def configurar_e_aplicar_canny(self, min, max):
+        self.canny_min = min
+        self.canny_max = max
+        if self.imagem_original:
+            self.aplicar_canny()
 
     def mostrar_imagem(self):
         imagem = None
