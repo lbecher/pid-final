@@ -1,5 +1,7 @@
 from tkinter import Canvas, filedialog, Menu, messagebox, NW, Tk
 from PIL import Image, ImageTk
+import cv2
+import numpy
 
 class App:
     def __init__(self, root):
@@ -35,6 +37,14 @@ class App:
         if file_path:
             self.image_path = file_path
             self.image = Image.open(file_path)
+
+            # Converte para tons de cinza
+            numpy_gray_image = cv2.cvtColor(numpy.array(self.image), cv2.COLOR_RGB2GRAY)
+
+            # Aplica algoritmo de Canny
+            edges = cv2.Canny(numpy_gray_image, 100, 200)
+
+            self.image = Image.fromarray(edges)
             self.display_image()
 
     def display_image(self):
