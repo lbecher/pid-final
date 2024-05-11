@@ -3,93 +3,122 @@ from PIL import Image, ImageTk
 import cv2
 import numpy
 
+ARQUIVO_PADRAO = ".png"
+ARQUIVOS_SUPORTADOS = [("PNG", "*.png"), ("JPG", "*.jpg"), ("JPEG", "*.jpeg"), ("BMP", "*.bmp"), ("Todos os arquivos", "*.*")]
+
 class App:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Editor de Imagem")
+    def __init__(self, raiz):
+        self.imagem_original = None
+        self.imagem_processada = None
+        self.imagem_final = None
 
-        self.image = None
-        self.image_path = ""
+        self.raiz = raiz
+        self.raiz.title("Ligação de Pontos de Borda")
 
-        # Criação da barra de menu
-        self.menu_bar = Menu(self.root)
-        self.file_menu = Menu(self.menu_bar, tearoff=0)
-        self.file_menu.add_command(label="Abrir...", command=self.open_image)
-        self.file_menu.add_command(label="Salvar", command=self.save_image)
-        self.file_menu.add_command(label="Salvar como...", command=self.save_image_as)
-        self.file_menu.add_separator()
-        self.file_menu.add_command(label="Fechar", command=self.close_app)
-        self.menu_bar.add_cascade(label="Arquivo", menu=self.file_menu)
+        # Barra de menu
+        self.barra_de_menu = Menu(self.raiz)
+        self.menu_de_arquivo = Menu(self.barra_de_menu, tearoff=0)
+        self.menu_de_arquivo.add_command(label="Abrir...", command=self.abrir_imagem)
+        self.menu_de_arquivo.add_command(label="Exportar...", command=self.exportar_imagem)
+        self.menu_de_arquivo.add_separator()
+        self.menu_de_arquivo.add_command(label="Fechar", command=self.fechar_aplicativo)
+        self.barra_de_menu.add_cascade(label="Arquivo", menu=self.menu_de_arquivo)
 
-        self.config_menu = Menu(self.menu_bar, tearoff=0)
-        self.config_menu.add_command(label="Configurar Canny...", command=self.config_canny)
-        self.menu_bar.add_cascade(label="Configurações", menu=self.config_menu)
+        self.menu_de_configuracao = Menu(self.barra_de_menu, tearoff=0)
+        self.menu_de_configuracao.add_command(label="Configurar Canny...", command=self.configurar_canny)
+        self.menu_de_configuracao.add_separator()
+        self.barra_de_menu.add_cascade(label="Configurações", menu=self.menu_de_configuracao)
 
-        self.root.config(menu=self.menu_bar)
+        self.menu_de_ferramentas = Menu(self.barra_de_menu, tearoff=0)
+        self.menu_de_ferramentas.add_command(label="Aplicar Canny", command=self.aplicar_canny)
+        self.menu_de_ferramentas.add_separator()
+        self.menu_de_ferramentas.add_command(label="Aplicar algoritmo local", command=self.fechar_aplicativo)
+        self.menu_de_ferramentas.add_command(label="Aplicar algoritmo regional", command=self.fechar_aplicativo)
+        self.menu_de_ferramentas.add_command(label="Aplicar algoritmo global", command=self.fechar_aplicativo)
+        self.barra_de_menu.add_cascade(label="Ferramentas", menu=self.menu_de_ferramentas)
+
+        self.raiz.config(menu=self.barra_de_menu)
 
         # Exibição da imagem
-        self.canvas = Canvas(self.root, width=800, height=600)
+        self.canvas = Canvas(self.raiz, width=800, height=600)
         self.canvas.pack(padx=10, pady=10)
-    
-    def close_app(self):
-        self.root.quit()
 
-    def open_image(self):
-        file_path = filedialog.askopenfilename(defaultextension=".png", filetypes=[("PNG", "*.png"),
-                                                                                         ("JPEG", "*.jpg"),
-                                                                                         ("Todos os arquivos", "*.*")])
-        if file_path:
-            self.image_path = file_path
-            self.image = Image.open(file_path)
+    def abrir_imagem(self):
+        caminho = filedialog.askopenfilename(defaultextension=ARQUIVO_PADRAO, filetypes=ARQUIVOS_SUPORTADOS)
+        if caminho:
+            self.imagem_original = Image.open(caminho)
+            self.imagem_processada = None
+            self.imagem_final = None
+            self.mostrar_imagem()
 
-            # Converte para tons de cinza
-            numpy_gray_image = cv2.cvtColor(numpy.array(self.image), cv2.COLOR_RGB2GRAY)
+    def exportar_imagem(self):
+        imagem = None
 
-            # Aplica algoritmo de Canny
-            edges = cv2.Canny(numpy_gray_image, 100, 200)
-
-            self.image = Image.fromarray(edges)
-            self.display_image()
-
-    def display_image(self):
-        if self.image:
-            self.canvas.delete("all")  # Limpa o canvas
-            image_width, image_height = self.image.size
-            max_size = 800
-            if image_width > max_size or image_height > max_size:
-                ratio = min(max_size / image_width, max_size / image_height)
-                image_width = int(image_width * ratio)
-                image_height = int(image_height * ratio)
-                resized_image = self.image.resize((image_width, image_height))
-                self.photo = ImageTk.PhotoImage(resized_image)
-            else:
-                self.photo = ImageTk.PhotoImage(self.image)
-            self.canvas.create_image(0, 0, anchor=NW, image=self.photo)
+        if self.imagem_final:
+            imagem = self.imagem_final
+        elif self.imagem_processada:
+            imagem = self.imagem_processada
+        elif self.imagem_original:
+            imagem = self.imagem_original
         else:
-            messagebox.showerror("Erro", "Nenhuma imagem carregada.")
-
-    def save_image(self):
-        if self.image_path:
-            self.image.save(self.image_path)
+            messagebox.showerror("Erro", "Nenhuma imagem carregada para exportar.")
+            return
+        
+        caminho = filedialog.asksaveasfilename(defaultextension=ARQUIVO_PADRAO, filetypes=ARQUIVOS_SUPORTADOS)
+        if caminho:
+            imagem.save(caminho)
             messagebox.showinfo("Salvo", "Imagem salva com sucesso.")
-        else:
-            messagebox.showerror("Erro", "Nenhuma imagem carregada para salvar.")
-
-    def save_image_as(self):
-        if self.image:
-            file_path = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG", "*.png"),
-                                                                                         ("JPEG", "*.jpg"),
-                                                                                         ("Todos os arquivos", "*.*")])
-            if file_path:
-                self.image.save(file_path)
-                messagebox.showinfo("Salvo", "Imagem salva com sucesso.")
-        else:
-            messagebox.showerror("Erro", "Nenhuma imagem carregada para salvar.")
     
-    def config_canny(self):
-        pass
+    def fechar_aplicativo(self):
+        self.raiz.quit()
+    
+    def configurar_canny(self):
+        
+        if self.imagem_original:
+            self.aplicar_canny()
+    
+    def aplicar_canny(self):
+        if self.imagem_original:
+            # Converte para tons de cinza
+            imagem_monocromatica = cv2.cvtColor(numpy.array(self.imagem_original), cv2.COLOR_RGB2GRAY)
+            # Aplica algoritmo de Canny
+            imagem_monocromatica = cv2.Canny(imagem_monocromatica, 100, 200)
+
+            self.imagem_processada = Image.fromarray(imagem_monocromatica)
+
+            if self.imagem_final:
+                pass
+            else:
+                self.mostrar_imagem()
+        else:
+            messagebox.showerror("Erro", "Nenhuma imagem carregada para modificar.")
+
+    def mostrar_imagem(self):
+        imagem = None
+
+        if self.imagem_final:
+            imagem = self.imagem_final
+        elif self.imagem_processada:
+            imagem = self.imagem_processada
+        elif self.imagem_original:
+            imagem = self.imagem_original
+        else:
+            messagebox.showerror("Erro", "Nenhuma imagem carregada para mostrar.")
+            return
+        
+        width, height = imagem.size
+        max = 800
+        if width > max or height > max:
+            ratio = min(max / width, max / height)
+            width = int(width * ratio)
+            height = int(height * ratio)
+            imagem = imagem.resize((width, height))
+        
+        self.imagem_de_exibicao = ImageTk.PhotoImage(imagem)
+        self.canvas.delete("all")
+        self.canvas.create_image(0, 0, anchor=NW, image=self.imagem_de_exibicao)
 
 if __name__ == "__main__":
-    root = Tk()
-    app = App(root)
-    root.mainloop()
+    raiz = Tk()
+    app = App(raiz)
+    raiz.mainloop()
