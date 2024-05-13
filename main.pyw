@@ -47,7 +47,7 @@ class App:
         self.canvas.pack(padx=10, pady=10)
 
     def abrir_imagem(self):
-        caminho = filedialog.askopenfilename(defaultextension=ARQUIVO_PADRAO, filetypes=ARQUIVOS_SUPORTADOS)
+        caminho = filedialog.askopenfilename(defaultextension=ARQUIVO_PADRAO, filetypes=[("Imagens", "*.png;*.jpg;*.jpeg;*.bmp;*.tif;*.tiff"), ("Todos os arquivos", "*.*")])
         if caminho:
             self.imagem_original = Image.open(caminho)
             self.imagem_processada = None
@@ -67,7 +67,7 @@ class App:
             messagebox.showerror("Erro", "Nenhuma imagem carregada para exportar.")
             return
         
-        caminho = filedialog.asksaveasfilename(defaultextension=ARQUIVO_PADRAO, filetypes=ARQUIVOS_SUPORTADOS)
+        caminho = filedialog.asksaveasfilename(defaultextension=ARQUIVO_PADRAO, filetypes=[("PNG", "*.png")])
         if caminho:
             imagem.save(caminho)
             messagebox.showinfo("Salvo", "Imagem salva com sucesso.")
@@ -113,9 +113,9 @@ class App:
             # Converte para tons de cinza
             imagem_monocromatica = cv2.cvtColor(numpy.array(self.imagem_original), cv2.COLOR_RGB2GRAY)
             # Aplica algoritmo de Canny
-            imagem_monocromatica = cv2.Canny(imagem_monocromatica, self.canny_min, self.canny_max)
+            imagem_canny = cv2.Canny(imagem_monocromatica, self.canny_min, self.canny_max)
 
-            self.imagem_processada = Image.fromarray(imagem_monocromatica)
+            self.imagem_processada = Image.fromarray(imagem_canny)
 
             if self.imagem_final:
                 pass
