@@ -37,7 +37,8 @@ class ProcessamentoLocal():
         angulo = -np.pi
         for _ in range(self.ac):
             angulo += self.ta
-            g |= (m > self.tm) & (np.abs(alpha) > angulo) # np.abs(alpha)
+            margem = 0.15
+            g |= (m > self.tm) & ((alpha > angulo - margem) & (alpha < angulo + margem))
 
         # Converte matriz g para imagem
         return Image.fromarray(g * 255)

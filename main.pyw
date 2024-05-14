@@ -85,7 +85,6 @@ class App:
         # Criar uma nova janela para configurar os parâmetros do Canny
         janela = Toplevel(self.raiz)
         janela.title("Configuração do Canny")
-        janela.geometry('200x400')
 
         # Label e controle deslizante para limiar mínimo
         label_limiar_min = Label(janela, text="Limiar mínimo:")
@@ -139,7 +138,7 @@ class App:
         label_quantidade_de_angulos = Label(janela, text="Quantidade de ângulos:")
         label_quantidade_de_angulos.pack(pady=(10, 5))
 
-        scale_quantidade_de_angulos = Scale(janela, from_=0, to=15, orient="horizontal", length=300)
+        scale_quantidade_de_angulos = Scale(janela, from_=2, to=32, orient="horizontal", length=300)
         scale_quantidade_de_angulos.set(self.processamento_local.get_ac())
         scale_quantidade_de_angulos.pack(pady=5)
         
