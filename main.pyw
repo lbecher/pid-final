@@ -17,7 +17,7 @@ class App:
         self.canny_min = 100
         self.canny_max = 200
 
-        self.processamento_local = ProcessamentoLocal(100, 2)
+        self.processamento_local = ProcessamentoLocal()
         self.processamento_regional = None
         self.processamento_global = ProcessamentoGlobal(180, 100)
 
@@ -125,10 +125,7 @@ class App:
                 self.aplicar_canny()
         
         def ok():
-            self.canny_min = scale_limiar_min.get()
-            self.canny_max = scale_limiar_max.get()
-            if self.imagem_original:
-                self.aplicar_canny()
+            aplicar()
             janela.destroy()
 
         btn_aplicar = Button(janela, text="Aplicar", command=aplicar)
@@ -142,43 +139,59 @@ class App:
         janela = Toplevel(self.raiz)
         janela.title("Configuração do Processamento Local")
 
+        # Label e controle deslizante para k
+        label_k = Label(janela, text="K:")
+        label_k.pack(pady=(10, 5))
+
+        scale_k = Scale(janela, from_=0, to=20, resolution=1, orient="horizontal", length=300)
+        scale_k.set(self.processamento_local.get_k())
+        scale_k.pack(pady=5)
+
         # Label e controle deslizante para a faixa
         label_faixa = Label(janela, text="Faixa:")
         label_faixa.pack(pady=(10, 5))
 
-        scale_faixa = Scale(janela, from_=0, to=3.14, resolution=0.01, orient="horizontal", length=300)
+        scale_faixa = Scale(janela, from_=0, to=45, resolution=1, orient="horizontal", length=300)
         scale_faixa.set(self.processamento_local.get_faixa())
         scale_faixa.pack(pady=5)
 
-        # Label e controle deslizante para limiar positivo
-        label_limiar_positivo = Label(janela, text="Limiar positivo:")
-        label_limiar_positivo.pack(pady=(10, 5))
+        # Label e controle deslizante para o limiar
+        label_limiar = Label(janela, text="Limiar:")
+        label_limiar.pack(pady=(10, 5))
 
-        scale_limiar_positivo = Scale(janela, from_=0, to=1000, orient="horizontal", length=300)
-        scale_limiar_positivo.set(self.processamento_local.get_tm())
-        scale_limiar_positivo.pack(pady=5)
+        scale_limiar = Scale(janela, from_=0, to=1000, orient="horizontal", length=300)
+        scale_limiar.set(self.processamento_local.get_limiar())
+        scale_limiar.pack(pady=5)
 
-        # Label e controle deslizante para quantidade de ângulos
-        label_quantidade_de_angulos = Label(janela, text="Quantidade de ângulos:")
-        label_quantidade_de_angulos.pack(pady=(10, 5))
+        # Checkbox para usar todos os ângulos
+        def modificar_todos_os_angulos():
+            todos_os_angulos = self.processamento_local.get_todos_os_angulos()
+            self.processamento_local.set_todos_os_angulos(not todos_os_angulos)
 
-        scale_quantidade_de_angulos = Scale(janela, from_=2, to=32, orient="horizontal", length=300)
-        scale_quantidade_de_angulos.set(self.processamento_local.get_ac())
-        scale_quantidade_de_angulos.pack(pady=5)
+        todos_os_angulos = 0
+        if self.processamento_local.get_todos_os_angulos():
+            todos_os_angulos = 1
+        checkbox_todos_os_angulos = Checkbutton(janela, text="Usar todos os ângulos", variable=todos_os_angulos, onvalue=1, offvalue=0, command=modificar_todos_os_angulos)
+        checkbox_todos_os_angulos.pack(pady=10)
+
+        # Label e controle deslizante para o ângulo
+        label_angulo = Label(janela, text="Ângulo:")
+        label_angulo.pack(pady=(10, 5))
+
+        scale_angulo = Scale(janela, from_=0, to=180, resolution=45, orient="horizontal", length=300)
+        scale_angulo.set(self.processamento_local.get_angulo())
+        scale_angulo.pack(pady=5)
         
         def aplicar():
             self.processamento_local.set_faixa(scale_faixa.get())
-            self.processamento_local.set_tm(scale_limiar_positivo.get())
-            self.processamento_local.set_ac(scale_quantidade_de_angulos.get())
+            self.processamento_local.set_limiar(scale_limiar.get())
+            self.processamento_local.set_angulo(scale_angulo.get())
+            self.processamento_local.set_k(scale_k.get())
             if self.imagem_original:
                 self.aplicar_processamento_local()
         
         def ok():
-            self.processamento_local.set_faixa(scale_faixa.get())
-            self.processamento_local.set_tm(scale_limiar_positivo.get())
-            self.processamento_local.set_ac(scale_quantidade_de_angulos.get())
-            if self.imagem_original:
-                self.aplicar_processamento_local()
+            aplicar()
             janela.destroy()
 
         btn_aplicar = Button(janela, text="Aplicar", command=aplicar)
@@ -218,10 +231,7 @@ class App:
                 self.aplicar_processamento_global()
         
         def ok():
-            self.processamento_global.set_limiar(scale_limiar.get())
-            self.processamento_global.set_theta_intervalo(scale_theta_intervalo.get())
-            if self.imagem_original:
-                self.aplicar_processamento_global()
+            aplicar()
             janela.destroy()
 
         btn_aplicar = Button(janela, text="Aplicar", command=aplicar)
