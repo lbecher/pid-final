@@ -1,4 +1,4 @@
-from tkinter import Button, Canvas, filedialog, Label, Menu, messagebox, NW, Scale, Tk, Toplevel
+from tkinter import Button, Canvas, Checkbutton, filedialog, Label, Menu, messagebox, NW, Scale, Tk, Toplevel
 from PIL import Image, ImageTk
 import cv2
 import numpy as np
@@ -13,6 +13,7 @@ class App:
         self.imagem_deteccao_de_bordas = None
         self.imagem_bordas_corrigidas = None
 
+        self.canny_usar_gaussiano = False
         self.canny_min = 100
         self.canny_max = 200
 
@@ -90,6 +91,16 @@ class App:
         # Criar uma nova janela para configurar os parâmetros do Canny
         janela = Toplevel(self.raiz)
         janela.title("Configuração do Canny")
+
+        # Checkbox para usar o filtro Gaussiano
+        def modificar_canny_usar_gaussiano():
+            self.canny_usar_gaussiano = not self.canny_usar_gaussiano
+
+        usar_gaussiano = 0
+        if self.canny_usar_gaussiano:
+            usar_gaussiano = 1
+        checkbox_usar_gaussiano = Checkbutton(janela, text="Usar filtro Gaussiano", variable=usar_gaussiano, onvalue=1, offvalue=0, command=modificar_canny_usar_gaussiano)
+        checkbox_usar_gaussiano.pack(pady=10)
 
         # Label e controle deslizante para limiar mínimo
         label_limiar_min = Label(janela, text="Limiar mínimo:")
@@ -226,6 +237,10 @@ class App:
         if self.imagem_original:
             # Converte para tons de cinza
             imagem_monocromatica = cv2.cvtColor(np.array(self.imagem_original), cv2.COLOR_RGB2GRAY)
+
+            # Suavizar imagem com filtro Gaussiano
+            if self.canny_usar_gaussiano:
+                imagem_monocromatica = cv2.GaussianBlur(imagem_monocromatica, (15, 15), 0)
 
             # Aplica algoritmo de Canny
             self.imagem_deteccao_de_bordas = cv2.Canny(imagem_monocromatica, self.canny_min, self.canny_max)
