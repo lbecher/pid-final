@@ -3,10 +3,11 @@ import cv2
 import numpy as np
 
 class ProcessamentoLocal():
-    def __init__(self, tm, ac):
+    def __init__(self, tm, ac, faixa=0.2):
         self.tm = tm # Quantidade de ângulos
         self.ac = ac # Número de ângulos
         self.ta = (np.pi * 2) / ac # Limiar de ângulo positivo
+        self.margem = faixa / 2
 
     def set_ac(self, ac):
         self.ac = ac # Quantidade de ângulos
@@ -15,11 +16,17 @@ class ProcessamentoLocal():
     def set_tm(self, tm):
         self.tm = tm # Limiar positivo
     
+    def set_faixa(self, faixa):
+        self.margem = faixa / 2
+    
     def get_ac(self):
         return self.ac
     
     def get_tm(self):
         return self.tm
+    
+    def get_faixa(self):
+        return self.margem * 2
 
     def processar(self, imagem):
         # Converte imagem para matriz em tons de cinza
@@ -37,7 +44,9 @@ class ProcessamentoLocal():
         angulo = -np.pi
         for _ in range(self.ac):
             angulo += self.ta
-            margem = 0.15
+            margem = 0.1
+            # g |= (m > self.tm) & (alpha == angulo)
+            # g |= (m > self.tm) & (np.abs(alpha) > angulo)
             g |= (m > self.tm) & ((alpha > angulo - margem) & (alpha < angulo + margem))
 
         # Converte matriz g para imagem
