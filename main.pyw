@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 
 from processamento_global import ProcessamentoGlobal
+from processamento_regional import ProcessamentoRegional
 from processamento_local import ProcessamentoLocal
 
 class App:
@@ -18,7 +19,7 @@ class App:
         self.canny_max = 200
 
         self.processamento_local = ProcessamentoLocal()
-        self.processamento_regional = None
+        self.processamento_regional = ProcessamentoRegional(15)
         self.processamento_global = ProcessamentoGlobal(180, 100)
 
         self.raiz = raiz
@@ -201,7 +202,32 @@ class App:
         btn_ok.pack(pady=10)
     
     def configurar_processamento_regional(self):
-        pass
+        # Criar uma nova janela para configurar os parâmetros do processamento local
+        janela = Toplevel(self.raiz)
+        janela.title("Configuração do Processamento regional")
+
+        # Label e controle deslizante para t positivo
+        label_t = Label(janela, text="Limiar:")
+        label_t.pack(pady=(10, 5))
+
+        scale_t = Scale(janela, from_=0, to=1000, orient="horizontal", length=300)
+        scale_t.set(self.processamento_regional.get_t())
+        scale_t.pack(pady=5)
+        
+        def aplicar():
+            self.processamento_regional.set_t(scale_t.get())
+            if self.imagem_deteccao_de_bordas is not None:
+                self.aplicar_processamento_regional()
+        
+        def ok():
+            aplicar()
+            janela.destroy()
+
+        btn_aplicar = Button(janela, text="Aplicar", command=aplicar)
+        btn_aplicar.pack(pady=10)
+
+        btn_ok = Button(janela, text="Ok", command=ok)
+        btn_ok.pack(pady=10)
     
     def configurar_processamento_global(self):
         # Criar uma nova janela para configurar os parâmetros do processamento local
@@ -268,7 +294,6 @@ class App:
             messagebox.showerror("Erro", "Nenhuma imagem carregada para modificar.")
     
     def aplicar_processamento_regional(self):
-        return
         if self.imagem_deteccao_de_bordas is not None:
             self.imagem_bordas_corrigidas = self.processamento_regional.processar(self.imagem_deteccao_de_bordas)
             self.mostrar_imagem()
