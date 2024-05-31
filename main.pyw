@@ -10,6 +10,7 @@ from processamento_local import ProcessamentoLocal
 class App:
     def __init__(self, raiz):
         # Parâmetros iniciais
+        self.caminho = None
         self.imagem_original = None
         self.imagem_deteccao_de_bordas = None
         self.imagem_bordas_corrigidas = None
@@ -57,10 +58,10 @@ class App:
         self.canvas.pack(padx=10, pady=10)
 
     def abrir_imagem(self):
-        caminho = filedialog.askopenfilename(defaultextension=".png", filetypes=[("Imagens", "*.png;*.jpg;*.jpeg;*.bmp;*.tif;*.tiff"), ("Todos os arquivos", "*.*")])
-        if caminho:
+        self.caminho = filedialog.askopenfilename(defaultextension=".png", filetypes=[("Imagens", "*.png;*.jpg;*.jpeg;*.bmp;*.tif;*.tiff"), ("Todos os arquivos", "*.*")])
+        if self.caminho:
             # Abre a imagem
-            self.imagem_original = Image.open(caminho)
+            self.imagem_original = Image.open(self.caminho)
 
             self.imagem_deteccao_de_bordas = None
             self.imagem_bordas_corrigidas = None
@@ -267,7 +268,31 @@ class App:
         btn_ok.pack(pady=10)
     
     def configurar_processamento_regional(self):
-        pass
+        # Criar uma nova janela para configurar os parâmetros do processamento local
+        janela = Toplevel(self.raiz)
+        janela.title("Configuração do Processamento Regional")
+
+        # Label e controle deslizante para t positivo
+        label_t = Label(janela, text="Limiar:")
+        label_t.pack(pady=(10, 5))
+
+        scale_t = Scale(janela, from_=0, to=1000, orient="horizontal", length=300)
+        scale_t.set(self.processamento_regional.get_t())
+        scale_t.pack(pady=5)
+        
+        def aplicar():
+            self.processamento_regional.set_t(scale_t.get())
+            self.aplicar_processamento_regional()
+        
+        def ok():
+            aplicar()
+            janela.destroy()
+
+        btn_aplicar = Button(janela, text="Aplicar", command=aplicar)
+        btn_aplicar.pack(pady=10)
+
+        btn_ok = Button(janela, text="Ok", command=ok)
+        btn_ok.pack(pady=10)
     
     def aplicar_canny(self):
         if self.imagem_original:
@@ -294,11 +319,11 @@ class App:
             messagebox.showerror("Erro", "Nenhuma imagem carregada para modificar.")
     
     def aplicar_processamento_regional(self):
-        if self.imagem_deteccao_de_bordas is not None:
-            self.imagem_bordas_corrigidas = self.processamento_regional.processar(self.imagem_deteccao_de_bordas)
+        if self.caminho is not None:
+            self.imagem_bordas_corrigidas = self.processamento_regional.processar(self.caminho)
             self.mostrar_imagem()
         else:
-            messagebox.showerror("Erro", "Aplique Canny em uma imagem para usar o Processamento Regional.")
+            messagebox.showerror("Erro", "Nenhuma imagem carregada para modificar.")
     
     def aplicar_processamento_global(self):
         if self.imagem_deteccao_de_bordas is not None:
