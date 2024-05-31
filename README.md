@@ -1,5 +1,5 @@
 # Trabalho final da disciplina de Processamento de Imagens Digitais
->Colaboradoras: [Luiz Becher](https://github.com/lbecher) e [Heloisa Alves](https://github.com/Helogizzy)
+>Colaboradores: [Luiz Becher](https://github.com/lbecher) e [Heloisa Alves](https://github.com/Helogizzy)
 
 ## Descrição
 Consiste na implementação dos algoritmos para Ligação dos Pontos de Borda. As três abordagens implementadas são: 
